@@ -33,3 +33,10 @@ Instead of traditional encryption, this project demonstrates how an image can be
 ```bash
 git clone https://github.com/AnandOjha2407/Image-Encryption.git
 cd Image-Encryption
+
+
+## 🔗 Live Demo
+
+Check out the deployed project here:  
+[![Live Site](https://img.shields.io/badge/Live-Demo-green?style=for-the-badge&logo=render)](https://image-encryption-5snc.onrender.com)
+

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SIRDS Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="text-center p-4">
+
+    <h1>SIRDS Generator</h1>
+
+    <!-- Upload form -->
+    <form method="POST" action="/upload" enctype="multipart/form-data" class="my-4">
+        <input type="file" name="image" class="form-control w-50 mx-auto mb-3" required>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    <div class="container">
+
+        <!-- 1. Uploaded Image Section -->
+<div id="uploadedImageSection" class="mb-5">
+    {% if uploaded_image %}
+    <h2>Uploaded Image</h2>
+    <div class="image-wrapper">
+        <img src="{{ uploaded_image }}" alt="Uploaded Image">
+    </div>
+    <form method="POST" action="/generate_depth" class="mt-3">
+        <button type="submit" class="btn btn-secondary">Generate Depth Maps</button>
+    </form>
+    {% endif %}
+</div>
+
+
+
+
+<div id="depthMapsSection" class="mb-5">
+    {% if depth_maps %}
+    <h2>Depth Maps</h2>
+    
+    <!-- Inner div wrapping all images -->
+    <div class="depth-maps-images d-flex flex-wrap justify-content-center gap-3 my-3">
+        {% for path in depth_maps %}
+            <img src="{{ path }}" alt="Depth Map" class="img-fluid depth-map-img">
+        {% endfor %}
+    </div>
+
+    <form method="POST" action="/generate_sirds" class="mt-3">
+        <button type="submit" class="btn btn-success">Generate SIRDS</button>
+    </form>
+    {% endif %}
+</div>
+
+
+<div id="sirdsImagesSection" class="mb-5">
+    {% if sirds_images %}
+    <h2>SIRDS Images</h2>
+    
+    <form method="POST" action="/combine">
+        <!-- Inner div wrapping all SIRDS images and checkboxes -->
+        <div class="sirds-images-container d-flex flex-wrap justify-content-center gap-3">
+            {% for path in sirds_images %}
+            <div class="text-center m-2">
+                <label>
+                    <input type="checkbox" name="sirds" value="{{ loop.index0 }}" class="form-check-input me-1"> 
+                    <img src="{{ path }}" alt="SIRDS Image {{ loop.index }}" class="img-fluid border rounded sirds-img">
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-warning">Combine Selected</button>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+
+
+<div id="resultingDepthMapSection" class="mb-5 text-center">
+    {% if combined_image %}
+    <h2>Resulting Depth Map</h2>
+    
+    <div class="resulting-image-container position-relative d-inline-block mx-auto">
+        <img id="originalImage" src="{{ uploaded_image }}" alt="Original Image" class="original-image">
+        <img id="depthMapImage" src="{{ combined_image }}" alt="Combined Result" class="depth-map-image position-absolute top-0 start-0">
+    </div>
+
+    <div class="mt-3 w-50 mx-auto">
+        <label for="colorSlider" class="form-label">Adjust Color (0 - 100)</label>
+        <input type="range" id="colorSlider" class="form-range" min="0" max="100" value="0">
+    </div>
+    {% endif %}
+</div>
+
+
+
+    </div>
+
+    <script>
+        const depthMapImage = document.getElementById('depthMapImage');
+        const originalImage = document.getElementById('originalImage');
+        const colorSlider = document.getElementById('colorSlider');
+
+        if (colorSlider) {
+            colorSlider.addEventListener('input', function () {
+                const blendValue = colorSlider.value / 100;
+
+                // Depth map stays grayscale but fades out
+                depthMapImage.style.opacity = `${1 - blendValue}`;
+
+                // Original image fades in in full color (no grayscale)
+                originalImage.style.opacity = `${blendValue}`;
+            });
+        }
+    </script>
+<style>
+/* Uploaded Image Section */
+#uploadedImageSection {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+#uploadedImageSection .image-wrapper {
+    width: 320px;
+    height: 240px;
+    border: 4px solid #4CAF50; /* green border */
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0 auto; /* center horizontally */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#uploadedImageSection .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  /* full cover */
+    display: block;
+}
+
+
+.depth-map-img {
+    max-width: 400px;
+    border: 2px solid #007BFF; /* Bootstrap primary blue */
+    border-radius: 8px;
+}
+
+.sirds-img {
+    max-width: 400px;
+}
+
+/* Resulting Depth Map Section */
+#resultingDepthMapSection {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.resulting-image-container {
+    width: 320px;
+    height: 240px;
+    border: 4px solid #4CAF50; /* green border */
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: inline-block;
+}
+
+.resulting-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* fully cover container */
+    display: block;
+}
+
+.original-image {
+    opacity: 0;
+}
+
+.depth-map-image {
+    mix-blend-mode: luminosity;
+    filter: grayscale(100%);
+    opacity: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+</style>
+</body>
+</html>
